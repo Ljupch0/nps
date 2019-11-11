@@ -11,6 +11,7 @@ library(googlesheets4)
 library(tidyverse)
 library(NPS)
 library(flexdashboard)
+library(ggmap)
 ```
 
 
@@ -30,6 +31,9 @@ nps_data <- rename(nps_data,
 #NPS Calculations
 nps_score <- nps(nps_data$nps)*100
 nps_data$nps_category <- npc(nps_data$nps)
+
+#New age group variable
+nps_data$age_groups <- cut(nps_data$age, c(17,24,34,49,69,99))
 ```
 
 
@@ -43,16 +47,16 @@ Row
 
 ### Net Promoter Score 
 
-```{r fig.width=2.5, fig.height=2}
+```{r fig.width=2.5, fig.height=25}
 gauge(nps_score, min = -100, max = 100, gaugeSectors(
   success = c(50, 100), warning = c(0, 50), danger = c(-100, 0)
 ))
 ```
 
 ### Respondent Distribution by Category
-```{r fig.width=10, fig.height=1}
+```{r fig.width=10, fig.height=0.75}
 ggplot(nps_data)+
-  geom_bar(mapping = aes(x=data_type, fill = factor(nps_category, levels = c("Promoter", "Passive","Detractor"))), position = "fill")+
+  geom_bar(mapping = aes(x="", fill = factor(nps_category, levels = c("Promoter", "Passive","Detractor"))), position = "fill")+
   scale_fill_manual(values = c("springgreen3","gold", "firebrick"))+
   coord_flip()+
   labs(fill="")+
@@ -65,25 +69,49 @@ ggplot(nps_data)+
     axis.text.x = element_text(color = "grey20", size = 10),
     text = element_text(size=13)
   )
-
-
 ```
 
 
 Row
 -----------------------------------------------------------------------
 
-### Chart C
+### Gender of Respondents
 
-```{r}
+```{r fig.width=4, fig.height=2.5}
 ggplot(nps_data)+
-  
+  geom_bar(aes(x="", y=gender, fill=gender), stat="identity")+
+  coord_polar("y", start=0)+
+  scale_fill_manual(values = c("salmon", "lightskyblue", "mediumpurple"))+
+  labs(fill="Gender")+
+  theme_minimal()+
+   theme(
+    axis.text.x=element_blank(),
+    panel.grid.major.x = element_blank(),
+    panel.grid.major.y = element_blank(),
+    axis.title.x=element_blank(),
+    axis.title.y=element_blank(),
+    )
 
 ```
 
-### Chart D
+### Age of Respondents
 
-```{r}
+```{r fig.width=8, fig.height=3.5}
+ggplot(nps_data, aes(x=age_groups))+
+  geom_bar(aes(fill=age_groups))+
+  geom_text(stat='count', aes(label=..count..), vjust= -0.3)+
+  scale_fill_brewer(palette = "Blues")+
+  guides(fill=FALSE)+
+  xlab("Age Groups")+
+  ylab("")+
+  theme_minimal()+
+  theme(
+    panel.grid.major.y = element_blank(),
+    panel.grid.minor.y = element_blank(),
+    panel.grid.major.x = element_blank(),
+    axis.line.y=element_blank(),
+    axis.text.y=element_blank()
+  )
 
 ```
 
@@ -95,5 +123,7 @@ Row
 ### Map E
 
 ```{r}
+
+
 
 ```
