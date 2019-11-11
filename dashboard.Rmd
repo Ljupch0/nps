@@ -1,0 +1,99 @@
+---
+title: "Untitled"
+output: 
+  flexdashboard::flex_dashboard:
+    orientation: rows
+    vertical_layout: fill
+---
+
+```{r setup, include=FALSE}
+library(googlesheets4)
+library(tidyverse)
+library(NPS)
+library(flexdashboard)
+```
+
+
+
+
+```{r}
+sheets_deauth()
+nps_data <- read_sheet("https://docs.google.com/spreadsheets/d/1OG2i1gIv0J9bZMxRr8O2SHYxQsu27LjRbBUBnaZ7zvM/edit?usp=sharing")
+sheets_deauth()
+
+#variable name cleaning
+names(nps_data) <- tolower(names(nps_data))
+nps_data <- rename(nps_data,
+                   nps=`how likely are you to recommend trivago to a friend or colleague?`,
+                   country=`country of respondent`) 
+
+#NPS Calculations
+nps_score <- nps(nps_data$nps)*100
+nps_data$nps_category <- npc(nps_data$nps)
+```
+
+
+
+
+
+
+
+Row
+-----------------------------------------------------------------------
+
+### Net Promoter Score 
+
+```{r fig.width=2.5, fig.height=2}
+gauge(nps_score, min = -100, max = 100, gaugeSectors(
+  success = c(50, 100), warning = c(0, 50), danger = c(-100, 0)
+))
+```
+
+### Respondent Distribution by Category
+```{r fig.width=10, fig.height=1}
+ggplot(nps_data)+
+  geom_bar(mapping = aes(x=data_type, fill = factor(nps_category, levels = c("Promoter", "Passive","Detractor"))), position = "fill")+
+  scale_fill_manual(values = c("springgreen3","gold", "firebrick"))+
+  coord_flip()+
+  labs(fill="")+
+  theme_minimal()+
+  theme(
+    axis.title.x=element_blank(),
+    axis.title.y=element_blank(),
+    axis.text.y=element_blank(),
+    panel.grid.major.y = element_blank(),
+    axis.text.x = element_text(color = "grey20", size = 10),
+    text = element_text(size=13)
+  )
+
+
+```
+
+
+Row
+-----------------------------------------------------------------------
+
+### Chart C
+
+```{r}
+ggplot(nps_data)+
+  
+
+```
+
+### Chart D
+
+```{r}
+
+```
+
+
+
+Row
+-----------------------------------------------------------------------
+
+### Map E
+
+```{r}
+
+```

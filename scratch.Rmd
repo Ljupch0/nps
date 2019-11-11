@@ -1,0 +1,81 @@
+---
+title: "scratch"
+output: html_notebook
+---
+
+
+
+
+
+
+```{r}
+library(googlesheets4)
+library(tidyverse)
+library(NPS)
+```
+
+
+
+
+Data import
+```{r}
+nps_data <- read_sheet("https://docs.google.com/spreadsheets/d/1OG2i1gIv0J9bZMxRr8O2SHYxQsu27LjRbBUBnaZ7zvM/edit?usp=sharing")
+
+#variable name cleaning
+names(nps_data) <- tolower(names(nps_data))
+nps_data <- rename(nps_data,
+                   nps=`how likely are you to recommend trivago to a friend or colleague?`,
+                   country=`country of respondent`) 
+
+#NPS Calculations
+nps_score <- nps(nps_data$nps)*100
+nps_data$nps_category <- npc(nps_data$nps)
+
+```
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
