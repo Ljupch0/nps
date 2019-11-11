@@ -1,9 +1,11 @@
 ---
-title: "Untitled"
+title: "NPS Score Dashboard - Ljupcho Naumov for trivago"
 output: 
   flexdashboard::flex_dashboard:
     orientation: rows
-    vertical_layout: fill
+    vertical_layout: scroll
+editor_options: 
+  chunk_output_type: inline
 ---
 
 ```{r setup, include=FALSE}
@@ -11,7 +13,9 @@ library(googlesheets4)
 library(tidyverse)
 library(NPS)
 library(flexdashboard)
-library(ggmap)
+library(leaflet)
+library(geojsonio)
+
 ```
 
 
@@ -24,9 +28,7 @@ sheets_deauth()
 
 #variable name cleaning
 names(nps_data) <- tolower(names(nps_data))
-nps_data <- rename(nps_data,
-                   nps=`how likely are you to recommend trivago to a friend or colleague?`,
-                   country=`country of respondent`) 
+nps_data <- rename(nps_data,nps=`how likely are you to recommend trivago to a friend or colleague?`,country=`country of respondent`) 
 
 #NPS Calculations
 nps_score <- nps(nps_data$nps)*100
@@ -47,16 +49,19 @@ Row
 
 ### Net Promoter Score 
 
-```{r fig.width=2.5, fig.height=25}
+```{r fig.width=2.5, fig.height=2.5}
 gauge(nps_score, min = -100, max = 100, gaugeSectors(
   success = c(50, 100), warning = c(0, 50), danger = c(-100, 0)
 ))
 ```
 
 ### Respondent Distribution by Category
-```{r fig.width=10, fig.height=0.75}
+```{r fig.width=10, fig.height=1}
 ggplot(nps_data)+
-  geom_bar(mapping = aes(x="", fill = factor(nps_category, levels = c("Promoter", "Passive","Detractor"))), position = "fill")+
+  geom_bar(
+    mapping = aes(x="", fill = factor(nps_category, levels = c("Promoter", "Passive","Detractor"))),
+    position = "fill",
+    width=0.4)+
   scale_fill_manual(values = c("springgreen3","gold", "firebrick"))+
   coord_flip()+
   labs(fill="")+
@@ -77,7 +82,7 @@ Row
 
 ### Gender of Respondents
 
-```{r fig.width=4, fig.height=2.5}
+```{r fig.width=5, fig.height=5}
 ggplot(nps_data)+
   geom_bar(aes(x="", y=gender, fill=gender), stat="identity")+
   coord_polar("y", start=0)+
@@ -90,6 +95,7 @@ ggplot(nps_data)+
     panel.grid.major.y = element_blank(),
     axis.title.x=element_blank(),
     axis.title.y=element_blank(),
+    text = element_text(size=15)
     )
 
 ```
@@ -99,7 +105,7 @@ ggplot(nps_data)+
 ```{r fig.width=8, fig.height=3.5}
 ggplot(nps_data, aes(x=age_groups))+
   geom_bar(aes(fill=age_groups))+
-  geom_text(stat='count', aes(label=..count..), vjust= -0.3)+
+  geom_text(stat='count', aes(label=..count..), vjust= -0.2)+
   scale_fill_brewer(palette = "Blues")+
   guides(fill=FALSE)+
   xlab("Age Groups")+
@@ -110,7 +116,8 @@ ggplot(nps_data, aes(x=age_groups))+
     panel.grid.minor.y = element_blank(),
     panel.grid.major.x = element_blank(),
     axis.line.y=element_blank(),
-    axis.text.y=element_blank()
+    axis.text.y=element_blank(),
+    text = element_text(size=15)
   )
 
 ```
@@ -120,10 +127,64 @@ ggplot(nps_data, aes(x=age_groups))+
 Row
 -----------------------------------------------------------------------
 
-### Map E
+### Countries of Respondents
 
-```{r}
+```{r fig.height=5}
+europe <- geojsonio::geojson_read("europe.geo.json", what = "sp")
+pal <- colorNumeric("Greens", domain = europe@data$n, na.color="white")
+country_count <- nps_data %>% group_by(country) %>% count()
+europe@data <- left_join(europe@data, country_count, by=c("sovereignt"="country"))
 
+labels <- sprintf(
+  "<strong>%s</strong><br/>%g respondents",
+  europe@data$sovereignt, europe@data$n
+) %>% lapply(htmltools::HTML)
 
-
+leaflet(data=europe) %>% 
+  addTiles %>% 
+  setView(15.089348, 48.343510, zoom=4) %>% 
+  addProviderTiles(provider="Esri.WorldGrayCanvas") %>% 
+  addPolygons(
+    fillColor = ~pal(europe@data$n),
+    weight = 2,
+    opacity = 1,
+    color = "grey",
+    dashArray = "3",
+    fillOpacity = 0.7,
+    highlight = highlightOptions(
+      weight = 4,
+      color = "DimGray",
+      dashArray = "",
+      fillOpacity = 0.7,
+      bringToFront = TRUE),
+    label = labels)
+  
 ```
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
