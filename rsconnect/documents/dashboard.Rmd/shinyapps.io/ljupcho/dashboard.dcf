@@ -1,0 +1,10 @@
+name: dashboard
+title:
+username:
+account: ljupcho
+server: shinyapps.io
+hostUrl: https://api.shinyapps.io/v1
+appId: 1455690
+bundleId: 2581487
+url: https://ljupcho.shinyapps.io/dashboard/
+when: 1573514793.48368
