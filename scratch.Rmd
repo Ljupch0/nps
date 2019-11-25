@@ -1,6 +1,8 @@
 ---
 title: "scratch"
 output: html_notebook
+editor_options: 
+  chunk_output_type: inline
 ---
 
 
@@ -33,18 +35,48 @@ library(shinydashboard)
 
 Data import
 ```{r}
+sheets_deauth()
 nps_data <- read_sheet("https://docs.google.com/spreadsheets/d/1OG2i1gIv0J9bZMxRr8O2SHYxQsu27LjRbBUBnaZ7zvM/edit?usp=sharing")
 
 #variable name cleaning
 names(nps_data) <- tolower(names(nps_data))
-nps_data <- rename(nps_data,
-                   nps=`how likely are you to recommend trivago to a friend or colleague?`,
-                   country=`country of respondent`) 
+nps_data <- rename(nps_data,nps=`how likely are you to recommend trivago to a friend or colleague?`,country=`country of respondent`) 
 
 #NPS Calculations
-nps_score <- nps(nps_data$nps)*100
+nps_score <- round(nps(nps_data$nps)*100, digits=2)
 nps_data$nps_category <- npc(nps_data$nps)
 
+#New age group variable
+nps_data$age_groups <- cut(nps_data$age, c(17,24,34,49,69,99))
+
+
+```
+
+
+```{r}
+
+
+weeks=as.integer((max(nps_data$date)-min(nps_data$date))/7)
+
+ggplot(nps_data)+
+            geom_histogram(
+                mapping = aes(x=date, fill = factor(nps_category,levels = c("Promoter", "Passive","Detractor"))),
+                position = "fill",
+                bins=weeks,
+                color="white",
+                size=1.2)+
+            scale_fill_manual(values = c("springgreen3","gold", "firebrick"))+
+            labs(fill="")+
+            theme_minimal()+
+            theme(
+                axis.title.x=element_blank(),
+                axis.title.y=element_blank(),
+                axis.text.y=element_blank(),
+                panel.grid.major.y = element_blank(),
+                panel.grid.minor.y = element_blank(),
+                axis.text.x = element_text(color = "grey20", size = 10),
+                text = element_text(size=13)
+            )
 ```
 
 
@@ -59,8 +91,24 @@ nps_data$nps_category <- npc(nps_data$nps)
 
 
 
-
-
+```{r}
+ggplot(data=nps_data)+
+  geom_bar(mapping=aes(x=nps, fill=nps_category))+
+  scale_fill_manual(values= c("firebrick","gold","springgreen3"))+
+  guides(fill=FALSE)+
+  geom_text(stat='count', aes(x=nps,label=..count..), vjust= -0.3)+
+  scale_x_continuous(breaks = seq(min(nps_data$nps), max(nps_data$nps), by = 1))+
+  labs(y=NULL, x=NULL)+
+  theme_minimal()+
+  theme(
+    panel.grid.major.y=element_blank(),
+    panel.grid.minor.y=element_blank(),
+    panel.grid.minor.x=element_blank(),
+    panel.grid.major.x=element_blank(),
+    axis.text.y = element_blank(),
+    axis.text.x = element_text(size=11)
+  )
+```
 
 
 
