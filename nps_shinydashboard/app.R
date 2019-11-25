@@ -8,6 +8,7 @@
 library(shiny)
 library(shinydashboard)
 library(dplyr)
+library(ggplot2)
 library(googlesheets4)
 library(NPS)
 library(leaflet)
@@ -47,9 +48,11 @@ ui <- dashboardPage(
     dashboardHeader(title="Net Promoter Scores"),
     dashboardSidebar(disable = TRUE),
     dashboardBody(
-        fluidRow(infoBoxOutput("nps_score")),
-        fluidRow(),
-        fluidRow()
+        fluidRow(
+            column(3, valueBoxOutput("nps_score", width=NULL)),
+            column(9, plotOutput("distribution", height = 100)))
+            
+
     )
 )
 
@@ -60,17 +63,33 @@ ui <- dashboardPage(
 
 server <- function(input, output) {
     
-    output$nps_score <- renderInfoBox({
-        infoBox(
-            nps_score, "NPS Score",
-            color = if (nps_score>=50){
-                "green"
-            } else if (nps_score<50 | nps_score > 0){
-                "yellow"
-            } else {
-                "red"
-            }
+    output$nps_score <- renderValueBox({
+        shinydashboard::valueBox(
+            nps_score,
+            "NPS Score",
+            color = "green",
+            width=NULL
         )
+    })
+    
+    output$distribution <- renderPlot({
+        ggplot(nps_data)+
+            geom_bar(
+                mapping = aes(x="", fill = factor(nps_category, levels = c("Promoter", "Passive","Detractor"))),
+                position = "fill",
+                width = 0.45)+
+            scale_fill_manual(values = c("springgreen3","gold", "firebrick"))+
+            coord_flip()+
+            labs(fill="")+
+            theme_minimal()+
+            theme(
+                axis.title.x=element_blank(),
+                axis.title.y=element_blank(),
+                axis.text.y=element_blank(),
+                panel.grid.major.y = element_blank(),
+                axis.text.x = element_text(color = "grey20", size = 10),
+                text = element_text(size=13)
+            )
     })
     
     

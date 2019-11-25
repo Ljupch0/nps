@@ -66,6 +66,26 @@ nps_data$nps_category <- npc(nps_data$nps)
 
 
 
+```{r}
+ggplot(nps_data)+
+            geom_bar(
+                mapping = aes(x="", fill = factor(nps_category, levels = c("Promoter", "Passive","Detractor"))),
+                position = "fill",
+                width = 0.5
+               )+
+            scale_fill_manual(values = c("springgreen3","gold", "firebrick"))+
+            coord_flip()+
+            labs(fill="")+
+            theme_minimal()+
+            theme(
+                axis.title.x=element_blank(),
+                axis.title.y=element_blank(),
+                axis.text.y=element_blank(),
+                panel.grid.major.y = element_blank(),
+                axis.text.x = element_text(color = "grey20", size = 10),
+                text = element_text(size=13)
+            )
+```
 
 
 
