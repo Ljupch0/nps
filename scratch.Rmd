@@ -18,16 +18,27 @@ library(shinydashboard)
 ```
 
 ```{r}
-  infoBox(
-            nps_score, "NPS Score",
-            color = if (nps_score>=50){
-                "green"
-            } else if (nps_score<50 | nps_score > 0){
-                "yellow"
-            } else {
-                "red"
-            }
-        )
+nps_data$date <- as.Date(nps_data$date, origin="1970-01-01")
+
+ ggplot(nps_data)+
+            geom_histogram(
+                mapping = aes(x=date, fill = factor(nps_category,levels = c("Promoter", "Passive","Detractor"))),
+                position = "fill",
+                bins=weeks,
+                color="white",
+                size=1.2)+
+            scale_fill_manual(values = c("springgreen3","gold", "firebrick"))+
+            guides(fill=FALSE)+
+            theme_minimal()+
+            theme(
+                axis.title.x=element_blank(),
+                axis.title.y=element_blank(),
+                axis.text.y=element_blank(),
+                panel.grid.major.y = element_blank(),
+                panel.grid.minor.y = element_blank(),
+                axis.text.x = element_text(color = "grey20", size = 10),
+                text = element_text(size=13)
+            )  
 ```
 
 
@@ -137,12 +148,54 @@ ggplot(nps_data)+
 
 
 
+```{r}
+       ggplot(nps_data)+
+            geom_histogram(
+                mapping = aes(x=date, fill = factor(nps_category,levels = c("Promoter", "Passive","Detractor"))),
+                position = "fill",
+                bins=weeks,
+                color="white",
+                size=1.2)+
+            scale_fill_manual(values = c("springgreen3","gold", "firebrick"))+
+            guides(fill=FALSE)+
+            theme_minimal()+
+            theme(
+                axis.title.x=element_blank(),
+                axis.title.y=element_blank(),
+                axis.text.y=element_blank(),
+                panel.grid.major.y = element_blank(),
+                panel.grid.minor.y = element_blank(),
+                axis.text.x = element_text(color = "grey20", size = 10),
+                text = element_text(size=13)
+            )  
+```
 
 
 
 
 
 
+```{r}
+ggplot(nps_data)+
+            geom_histogram(
+                mapping = aes(x=date, fill = factor(nps_category,levels = c("Promoter", "Passive","Detractor"))),
+                position = "fill",
+                bins=weeks,
+                color="white",
+                size=1.2)+
+            scale_fill_manual(values = c("springgreen3","gold", "firebrick"))+
+            guides(fill=FALSE)+
+            theme_minimal()+
+            theme(
+                axis.title.x=element_blank(),
+                axis.title.y=element_blank(),
+                axis.text.y=element_blank(),
+                panel.grid.major.y = element_blank(),
+                panel.grid.minor.y = element_blank(),
+                axis.text.x = element_text(color = "grey20", size = 10),
+                text = element_text(size=13)
+            )  
+```
 
 
 

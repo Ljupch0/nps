@@ -7,12 +7,14 @@
 
 library(shiny)
 library(shinydashboard)
+library(tidyverse)
 library(dplyr)
 library(ggplot2)
 library(googlesheets4)
 library(NPS)
 library(leaflet)
 library(geojsonio)
+library(scales)
 library(DT)
 
 ######### Data Cleaning & Prep ############
@@ -32,6 +34,7 @@ nps_data$nps_category <- npc(nps_data$nps)
 nps_data$country <- as.factor(nps_data$country)
 nps_data$gender <- as.factor(nps_data$gender)
 
+
 #New age group variable
 nps_data$age_groups <- cut(nps_data$age, c(17,24,34,49,69,99))
 
@@ -42,7 +45,7 @@ country_count <- nps_data %>% group_by(country) %>% count()
 europe@data <- left_join(europe@data, country_count, by=c("sovereignt"="country"))
 
 labels <- sprintf(
-    "<strong>%s</strong><br/>%g respondents",
+    "<strong>%s</strong><br/>%g responses",
     europe@data$sovereignt, europe@data$n
 ) %>% lapply(htmltools::HTML)
 
@@ -52,13 +55,14 @@ weeks=as.integer((max(nps_data$date)-min(nps_data$date))/7)
 #################  UI  ####################
 
 ui <- dashboardPage(skin="purple",
-        dashboardHeader(title="Net Promoter Scores"),
+        dashboardHeader(title="Net Promoter Score"),
         dashboardSidebar(disable = TRUE),
         dashboardBody(
             fluidRow(
-                tags$head(tags$style(HTML(".small-box {height: 135px}"))),
-                column(3, shinydashboard::valueBoxOutput("nps_score", width=NULL)),
-                column(9, box(title = "Overall Distribution",
+                tags$head(tags$style(HTML(".small-box {height: 138px}"))),
+                column(2, shinydashboard::valueBoxOutput("nps_score", width=NULL)),
+                column(2, shinydashboard::valueBoxOutput("number_responces", width=NULL)),
+                column(8, box(title = "Overall Distribution",
                               width=NULL, 
                               plotOutput("distribution",height = 75)))
             ),
@@ -70,18 +74,17 @@ ui <- dashboardPage(skin="purple",
                 column(7, box(title = "Response Distribution by Rating",
                               width=NULL,
                               plotOutput("response_distribution", height=360)))
-                
             ),
             fluidRow(
-                column(4, box(title = "Gender",
+                column(4, box(title = "Demographics: Country",
                               width=NULL,
-                              plotOutput("gender_pie"))),
-                column(4, box(title = "Age",
+                              leafletOutput("map"))),
+                column(4, box(title = "Demographics: Age",
                               width=NULL,
                               plotOutput("age_distribution"))),
-                column(4, box(title = "Country",
+                column(4, box(title = "Demographics: Gender",
                               width=NULL,
-                              leafletOutput("map")))
+                              plotOutput("gender_pie")))
             ),
             fluidRow(
                 column(12, box(title = "Raw Data",
@@ -103,11 +106,21 @@ server <- function(input, output) {
         shinydashboard::valueBox(
             nps_score,
             "Overall NPS Score",
-            color = "green",
+            color = ifelse(nps_score>0, "green", "red"),
             width=NULL,
             icon=icon("bullhorn")
         )
     })
+    
+    output$number_responces <- renderValueBox(
+        shinydashboard::valueBox(
+            nrow(nps_data),
+            "Number of Survey Responses",
+            color="blue",
+            width=NULL,
+            icon=icon("users")
+        )
+    )
     
     output$distribution <- renderPlot({
         ggplot(nps_data)+
@@ -116,8 +129,8 @@ server <- function(input, output) {
                 position = "fill",
                 width = 0.65)+
             scale_fill_manual(values = c("springgreen3","gold", "firebrick"))+
-            coord_flip()+
             labs(fill="")+
+            coord_flip()+
             theme_minimal()+
             theme(
                 axis.title.x=element_blank(),
@@ -161,8 +174,7 @@ server <- function(input, output) {
                   #colnames = c(),
                   filter = list(position = 'top'), 
                   fillContainer = FALSE,
-                  rownames = FALSE,
-                  style = "bootstrap"
+                  rownames = FALSE
                   )
     })
     
@@ -207,7 +219,7 @@ server <- function(input, output) {
     output$map <- renderLeaflet({
         leaflet(data=europe) %>% 
             addTiles %>% 
-            setView(15.089348, 48.343510, zoom=4) %>% 
+            setView(5.995606, 47.003610, zoom=4) %>% 
             addProviderTiles(provider="Esri.WorldGrayCanvas") %>% 
             addPolygons(
                 fillColor = ~pal(europe@data$n),
@@ -243,6 +255,7 @@ server <- function(input, output) {
                 axis.text.x = element_text(size=11)
             )
     })
+
     
 }
 
