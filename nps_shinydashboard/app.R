@@ -49,8 +49,14 @@ ui <- dashboardPage(
     dashboardSidebar(disable = TRUE),
     dashboardBody(
         fluidRow(
-            column(3, valueBoxOutput("nps_score", width=NULL)),
-            column(9, plotOutput("distribution", height = 100)))
+            tags$head(tags$style(HTML(".small-box {height: 120px}"))),
+            column(3, shinydashboard::valueBoxOutput("nps_score", width=NULL)),
+            column(9, plotOutput("distribution", height = 120))),
+        fluidRow(
+            column(4, plotOutput("gender_pie")),
+            column(4, plotOutput("age_distribution")),
+            column(4, leafletOutput("map"))
+        )
             
 
     )
@@ -68,7 +74,7 @@ server <- function(input, output) {
             nps_score,
             "NPS Score",
             color = "green",
-            width=NULL
+            width=NULL 
         )
     })
     
@@ -92,8 +98,63 @@ server <- function(input, output) {
             )
     })
     
+    output$gender_pie <- renderPlot({
+        ggplot(nps_data)+
+            geom_bar(aes(x="", y=gender, fill=gender), stat="identity")+
+            coord_polar("y", start=0)+
+            scale_fill_manual(values = c("salmon", "lightskyblue", "mediumpurple"))+
+            labs(fill="Gender")+
+            theme_minimal()+
+            theme(
+                axis.text.x=element_blank(),
+                panel.grid.major.x = element_blank(),
+                panel.grid.major.y = element_blank(),
+                axis.title.x=element_blank(),
+                axis.title.y=element_blank(),
+                text = element_text(size=15)
+            )
+    })
     
     
+    output$age_distribution <- renderPlot({
+        ggplot(nps_data, aes(x=age_groups))+
+            geom_bar(aes(fill=age_groups))+
+            geom_text(stat='count', aes(label=..count..), vjust= -0.2)+
+            scale_fill_brewer(palette = "Blues")+
+            guides(fill=FALSE)+
+            xlab("Age Groups")+
+            ylab("")+
+            theme_minimal()+
+            theme(
+                panel.grid.major.y = element_blank(),
+                panel.grid.minor.y = element_blank(),
+                panel.grid.major.x = element_blank(),
+                axis.line.y=element_blank(),
+                axis.text.y=element_blank(),
+                text = element_text(size=15)
+            )
+    })
+    
+    output$map <- renderLeaflet({
+        leaflet(data=europe) %>% 
+            addTiles %>% 
+            setView(15.089348, 48.343510, zoom=4) %>% 
+            addProviderTiles(provider="Esri.WorldGrayCanvas") %>% 
+            addPolygons(
+                fillColor = ~pal(europe@data$n),
+                weight = 2,
+                opacity = 1,
+                color = "grey",
+                dashArray = "3",
+                fillOpacity = 0.7,
+                highlight = highlightOptions(
+                    weight = 4,
+                    color = "DimGray",
+                    dashArray = "",
+                    fillOpacity = 0.7,
+                    bringToFront = TRUE),
+                label = labels)
+    })
     
     
 }

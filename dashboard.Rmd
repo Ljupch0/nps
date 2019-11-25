@@ -72,13 +72,11 @@ renderGauge({
 
 ### Respondent Distribution by Category
 ```{r  fig.width=10, fig.height=2}
-renderPlotly({
-  ggplotly(
+renderPlot({
   ggplot(nps_data)+
   geom_bar(
     mapping = aes(x="", fill = factor(nps_category, levels = c("Promoter", "Passive","Detractor"))),
-    position = "fill",
-    width = 2)+
+    position = "fill")+
   scale_fill_manual(values = c("springgreen3","gold", "firebrick"))+
   coord_flip()+
   labs(fill="")+
@@ -90,8 +88,7 @@ renderPlotly({
     panel.grid.major.y = element_blank(),
     axis.text.x = element_text(color = "grey20", size = 10),
     text = element_text(size=13)
-  ), tooltip=c("nps_data$nps_category","count")) %>%
-  config(displayModeBar = FALSE)
+  )
 })
 ```
 
