@@ -15,8 +15,8 @@ library(geojsonio)
 
 ######### Data Cleaning & Prep ############
 
- sheets_deauth()
- nps_data <- read_sheet("https://docs.google.com/spreadsheets/d/1OG2i1gIv0J9bZMxRr8O2SHYxQsu27LjRbBUBnaZ7zvM")
+sheets_deauth()
+nps_data <- read_sheet("https://docs.google.com/spreadsheets/d/1OG2i1gIv0J9bZMxRr8O2SHYxQsu27LjRbBUBnaZ7zvM")
 
 #variable name cleaning
 names(nps_data) <- tolower(names(nps_data))
@@ -31,8 +31,7 @@ nps_data$age_groups <- cut(nps_data$age, c(17,24,34,49,69,99))
 
 #mapping data
 
-file <- system.file("europe.geo.json", package = "geojsonio")
-europe <- geojsonio::geojson_read(file, what = "sp")
+europe <- geojsonio::geojson_read("D:/R/nps/europe.geo.json", what = "sp")
 pal <- colorNumeric("Greens", domain = europe@data$n, na.color="white")
 country_count <- nps_data %>% group_by(country) %>% count()
 europe@data <- left_join(europe@data, country_count, by=c("sovereignt"="country"))
@@ -46,7 +45,7 @@ labels <- sprintf(
 
 ui <- dashboardPage(
     dashboardHeader(title="Net Promoter Scores"),
-    dashboardSidebar(include=FALSE),
+    dashboardSidebar(disable = TRUE),
     dashboardBody(
         fluidRow(infoBoxOutput("nps_score")),
         fluidRow(),

@@ -12,6 +12,20 @@ output: html_notebook
 library(googlesheets4)
 library(tidyverse)
 library(NPS)
+library(shinydashboard)
+```
+
+```{r}
+  infoBox(
+            nps_score, "NPS Score",
+            color = if (nps_score>=50){
+                "green"
+            } else if (nps_score<50 | nps_score > 0){
+                "yellow"
+            } else {
+                "red"
+            }
+        )
 ```
 
 
